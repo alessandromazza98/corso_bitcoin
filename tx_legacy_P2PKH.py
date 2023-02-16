@@ -5,6 +5,16 @@ from Tools import compact_size, reverse_byte_order, bytes_from_int_reversed, byt
 from Script import create_locking_script_P2PKH
 
 
+# -------------------------------------------------------------- #
+#
+# Obiettivo: creare tx P2PKH da zero!
+#
+# Faccio una transazione che invia i fondi a me stesso, circolare
+# my_address -> my_address
+#
+# -------------------------------------------------------------- #
+
+
 # Definisco alcune costanti
 NUM_BYTES_4 = 4
 NUM_BYTES_8 = 8
@@ -23,9 +33,6 @@ address = generate_address_P2PKH_testnet(K_ser)  # my1gegEiLdsJcZ3oNsDKjNVDT1fRj
 # Adesso mando dei bitcoin su questo address in modo da poterli
 # successivamente andare a spendere, creando da zero la tx
 # di spesa. Fhorte!
-#
-# Faccio una transazione che invia i fondi a me stesso, circolare
-# my_address -> my_address
 #
 # -------------------------------------------------------------- #
 
