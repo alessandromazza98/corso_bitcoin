@@ -1,4 +1,10 @@
+import hashlib
 from hashlib import sha256
+
+
+def bytes_from_int_reversed(x: int, num_byte: int) -> bytes:
+    """Transform an int input into its (num_byte)-byte representation and then reverse byte order"""
+    return reverse_byte_order(x.to_bytes(num_byte, byteorder="big"))
 
 
 def int_from_bytes(b: bytes) -> int:
@@ -35,6 +41,31 @@ def sha256_2(data: bytes) -> bytes:
     return sha256(sha256(data).digest()).digest()
 
 
+def hash160(data: bytes) -> bytes:
+    """ripemd160(sha256(data))"""
+    ripemd160 = hashlib.new('ripemd160')
+    ripemd160.update(sha256(data).digest())
+    return ripemd160.digest()
+
+
+def DER_encoding(signature: (int, int)) -> bytes:
+    """Return the DER-encode of the signature"""
+    r, s = signature
+    compound_object = b'\x30'
+    int_type = b'\x02'
+    r_bytes, s_bytes = bytes_from_int(r), bytes_from_int(s)
+    # Delete all leading zeros from r and s
+    r_bytes = r_bytes.lstrip(b'\x00')
+    s_bytes = s_bytes.lstrip(b'\x00')
+    # If r_bytes and s_bytes starts with a 1, add a b'\x00'
+    if r_bytes[0] & 0x80:
+        r_bytes = b'\x00' + r_bytes
+    if s_bytes[0] & 0x80:
+        s_bytes = b'\x00' + s_bytes
+    result = int_type + compact_size(r_bytes) + r_bytes + int_type + compact_size(s_bytes) + s_bytes
+    total_lenght = compact_size(result)
+    return compound_object + total_lenght + result
+
+
 if __name__ == '__main__':
-    print("hello")
-    
+    print("ciao")

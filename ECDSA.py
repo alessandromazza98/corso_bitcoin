@@ -1,5 +1,6 @@
 # module for CSPRNG
 import secrets
+from Tools import int_from_bytes
 
 # -------------------------
 # Elliptic Curve Parameters
@@ -20,18 +21,13 @@ G = 5506626302227734366957871889516853432625060345377759417550018736038911672924
     32670510020758816978083085130507043184471273380659243275938904335757337482424
 
 
-# ---------------
-# Modular Inverse: Extended Euclidean Algorithm
-# Esiste la funzione built-in pow(num,-1,primo)
-# ---------------
 def inverse(numero, primo=p):
+    """Inverse operation in mod p"""
     return pow(numero, -1, primo)
 
 
-# ------
-# Double: add a point P to itself
-# ------
 def double(P):
+    """Add a point P to itself"""
     px, py = P
     s = ((3 * px ** 2 + a) * inverse(2 * py)) % p
     px_double = (s ** 2 - 2 * px) % p
@@ -39,10 +35,8 @@ def double(P):
     return px_double, py_double
 
 
-# ---
-# Add: add two points together
-# ---
 def add(P1, P2):
+    """Add two points together"""
     p1x, p1y = P1
     p2x, p2y = P2
     # If p1 == p2 -> double(p1)
@@ -55,10 +49,8 @@ def add(P1, P2):
     return px_add, py_add
 
 
-# --------
-# Multiply: use double and add operations to quickly multiply a point by an integer value (i.e. a private key)
-# --------
 def multiply(k, point=G):
+    """Use double and add operations to quickly multiply a point by an integer value"""
     # create a copy of initial point
     current = point
     # convert integer into binary representation
@@ -73,10 +65,8 @@ def multiply(k, point=G):
     return current
 
 
-# --------
-# SignMsg
-# --------
-def sign(private_key: int, msg: int, k=None):
+def sign(private_key: int, msg: bytes, k=None):
+    """Sign a message with a priv key"""
     # generate k if not given
     if k is None:
         k = secrets.randbelow(n)
@@ -84,23 +74,19 @@ def sign(private_key: int, msg: int, k=None):
     Rx, Ry = multiply(k)
     # generate the signature (r,s)
     r = Rx % n  # r is the coordinate_x mod n
-    s = (inverse(k, n) * (msg + private_key * r)) % n
+    s = (inverse(k, n) * (int_from_bytes(msg) + private_key * r)) % n
     # choose the "low-s" value of s
     if s > n // 2:
         s = n - s
     return r, s
 
 
-# --------
-# VerifyMsg
-# --------
-def verify(public_key: int, msg: int, sig: (int, int)):
+def verify(public_key: int, msg: bytes, sig: (int, int)):
+    """Verify a signature in relation of a message and a public key"""
     r, s = sig
     # generate the two parts of the final equation
-    first_addend = multiply(inverse(s, n) * msg)
+    first_addend = multiply(inverse(s, n) * int_from_bytes(msg))
     second_addend = multiply(inverse(s, n) * r, public_key)
     # add the two points generated before in order to get R
     Rx, _ = add(first_addend, second_addend)
     return Rx == r
-
-
