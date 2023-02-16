@@ -80,9 +80,9 @@ sig_hash_type = bytes_from_int(1)[-1:]
 #
 # Ora devo firmare la transazione. Preparo il messaggio che va firmato
 #
-# Sostituisco al posto dell'unlocking script il locking script della transazione
-# che viene referenziata dall'input, che in questo caso, essendo una transazione
-# circolare, coincide con il locking script di questa stessa transazione
+# Sostituisco al posto dell'unlocking script il redeem script preparato
+# precedentemente. Da notare che con P2SH non si inserisce il locking script
+# relativo alla tx referenziata nell'input, ma, appunto, il redeem script
 #
 # ------------------------------------------------------------------------------ #
 tx_to_be_signed = version + input_count + txid_reverse + vout + compact_size(redeem_script) + redeem_script + sequence\
