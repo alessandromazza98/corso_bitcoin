@@ -7,7 +7,7 @@ from Script import create_locking_script_P2TR
 
 # -------------------------------------------------------------- #
 #
-# Obiettivo: creare tx P2TR da zero!
+# Obiettivo: creare tx P2TR key path spend da zero!
 #
 # Faccio una transazione che invia i fondi a me stesso, circolare
 # my_address -> my_address
