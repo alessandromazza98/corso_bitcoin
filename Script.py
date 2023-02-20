@@ -1,4 +1,4 @@
-from Tools import hash160, compact_size, bytes_from_int
+from Tools import hash160, compact_size, bytes_from_int, sha256
 
 
 def create_locking_script_P2PKH(public_key: bytes) -> bytes:
@@ -36,3 +36,17 @@ def create_locking_script_P2WPKH(public_key: bytes) -> bytes:
     version = b'\x00'
     public_key_hash160 = hash160(public_key)
     return version + compact_size(public_key_hash160) + public_key_hash160
+
+
+
+def create_locking_script_P2WSH(script: bytes) -> bytes:
+    """Create P2WSH locking script from script"""
+    version = b'\x00'
+    script_hash = sha256(script).digest()
+    return version + compact_size(script_hash) + script_hash
+
+
+def create_locking_script_P2TR(public_key: bytes) -> bytes:
+    """Create P2TR locking script from public key"""
+    version = b'\x51'
+    return version + compact_size(public_key) + public_key

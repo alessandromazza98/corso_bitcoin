@@ -48,21 +48,20 @@ def hash160(data: bytes) -> bytes:
     return ripemd160.digest()
 
 
-def DER_encoding(signature: (int, int)) -> bytes:
+def DER_encoding(signature: (bytes, bytes)) -> bytes:
     """Return the DER-encode of the signature"""
     r, s = signature
     compound_object = b'\x30'
     int_type = b'\x02'
-    r_bytes, s_bytes = bytes_from_int(r), bytes_from_int(s)
     # Delete all leading zeros from r and s
-    r_bytes = r_bytes.lstrip(b'\x00')
-    s_bytes = s_bytes.lstrip(b'\x00')
+    r = r.lstrip(b'\x00')
+    s = s.lstrip(b'\x00')
     # If r_bytes and s_bytes starts with a 1, add a b'\x00'
-    if r_bytes[0] & 0x80:
-        r_bytes = b'\x00' + r_bytes
-    if s_bytes[0] & 0x80:
-        s_bytes = b'\x00' + s_bytes
-    result = int_type + compact_size(r_bytes) + r_bytes + int_type + compact_size(s_bytes) + s_bytes
+    if r[0] & 0x80:
+        r = b'\x00' + r
+    if s[0] & 0x80:
+        s = b'\x00' + s
+    result = int_type + compact_size(r) + r + int_type + compact_size(s) + s
     total_lenght = compact_size(result)
     return compound_object + total_lenght + result
 

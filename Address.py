@@ -63,3 +63,17 @@ def generate_address_P2WSH_testnet(script: bytes) -> str:
     witver = 0
     witprog = sha256(script).digest()
     return generate_address_segwit(hrp, witver, witprog)
+
+
+def generate_address_P2TR(witprog: bytes) -> str:
+    """Generate P2TR address from witness program"""
+    hrp = "bc"
+    witver = 1
+    return generate_address_segwit(hrp, witver, witprog)
+
+
+def generate_address_P2TR_testnet(witprog: bytes) -> str:
+    """Generate P2TR address for testnet from witness program"""
+    hrp = "tb"
+    witver = 1
+    return generate_address_segwit(hrp, witver, witprog)
