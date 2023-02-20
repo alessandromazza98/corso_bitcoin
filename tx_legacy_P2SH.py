@@ -2,7 +2,7 @@ from ECDSA import multiply, sign
 from Keys import ser_public_key_compressed
 from Address import generate_address_P2SH_testnet, generate_address_P2PKH_testnet
 from Tools import compact_size, reverse_byte_order, bytes_from_int_reversed, bytes_from_int, sha256_2, DER_encoding
-from Script import create_redeem_script_multisig, create_locking_script_P2SH, create_locking_script_P2PKH
+from Script import create_redeem_script_multisig, create_locking_script_P2PKH
 
 # -------------------------------------------------------------- #
 #
