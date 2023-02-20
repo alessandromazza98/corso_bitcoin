@@ -29,3 +29,10 @@ def create_redeem_script_multisig(public_keys: [bytes], m: int, n: int) -> bytes
     keys = b''.join(keys)
     OP_CHECKMULTISIG = b'\xae'
     return OP_M + keys + OP_N + OP_CHECKMULTISIG
+
+
+def create_locking_script_P2WPKH(public_key: bytes) -> bytes:
+    """Create P2WPKH locking script from public key"""
+    version = b'\x00'
+    public_key_hash160 = hash160(public_key)
+    return version + compact_size(public_key_hash160) + public_key_hash160
