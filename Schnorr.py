@@ -31,7 +31,7 @@ def tagged_hash(tag: str, data: bytes) -> bytes:
     return sha256(tag_hash + tag_hash + data).digest()
 
 
-def lift_x(x: int):
+def lift_x(x: int) -> (int, int):
     if x >= p:
         return None
     y_sq = (pow(x, 3, p) + 7) % p

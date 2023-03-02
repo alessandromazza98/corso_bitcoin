@@ -1,15 +1,38 @@
 from base58 import b58encode_check
 from Tools import bytes_from_int, hash160, int_from_bytes
-from hashlib import sha512
+from hashlib import sha512, pbkdf2_hmac
 import hmac
 from ECDSA import multiply
 from Keys import ser_public_key_compressed
+
+
+# -------------------------------------------------------------------------------------------------------- #
+# Coin              Public Key          Private Key	        Address Encoding	            BIP 32 Path
+# Bitcoin	        0x0488b21e - xpub	0x0488ade4 - xprv	P2PKH or P2SH	                m/44'/0'
+# Bitcoin	        0x049d7cb2 - ypub	0x049d7878 - yprv	P2WPKH in P2SH	                m/49'/0'
+# Bitcoin	        0x04b24746 - zpub	0x04b2430c - zprv	P2WPKH	                        m/84'/0'
+# Bitcoin	        0x0295b43f - Ypub	0x0295b005 - Yprv	Multi-signature P2WSH in P2SH	-
+# Bitcoin	        0x02aa7ed3 - Zpub	0x02aa7a99 - Zprv	Multi-signature P2WSH	        -
+# Bitcoin Testnet	0x043587cf - tpub	0x04358394 - tprv	P2PKH or P2SH	                m/44'/1'
+# Bitcoin Testnet	0x044a5262 - upub	0x044a4e28 - uprv	P2WPKH in P2SH	                m/49'/1'
+# Bitcoin Testnet	0x045f1cf6 - vpub	0x045f18bc - vprv	P2WPKH	                        m/84'/1'
+# Bitcoin Testnet	0x024289ef - Upub	0x024285b5 - Uprv	Multi-signature P2WSH in P2SH	-
+# Bitcoin Testnet	0x02575483 - Vpub	0x02575048 - Vprv	Multi-signature P2WSH	        -
+# -------------------------------------------------------------------------------------------------------- #
+
 
 # Definisco alcune costanti
 NUM_BYTE_1 = 1
 NUM_BYTE_4 = 4
 NUM_BYTE_32 = 32
 n = 115792089237316195423570985008687907852837564279074904382605163141518161494337
+
+
+def mnemonic_to_seed(words: str, passphrase="") -> bytes:
+    """From a mnemonic generates a 512 bit seed following BIP-39"""
+    iterations = 2048
+    passphrase = "mnemonic" + passphrase
+    return pbkdf2_hmac('sha512', words.encode("utf-8"), passphrase.encode("utf-8"), iterations)
 
 
 def fingerprint(pub_key: bytes) -> bytes:
@@ -112,9 +135,6 @@ def CKDpub(xpub: (bytes, bytes), index: int) -> (bytes, bytes):
     xpub_child = K_i, c_i
     return xpub_child
 
-"""
-AGGIUNGI BIP-86: derivazione per P2TR che ha pub_key sempre da 32 byte
-"""
 
 if __name__ == '__main__':
     # Execute some tests
