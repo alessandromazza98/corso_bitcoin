@@ -18,6 +18,7 @@ from Script import create_redeem_script_multisig, create_locking_script_P2PKH
 # -------------------------------------------------------------- #
 
 # Definisco alcune costanti
+NUM_BYTES_1 = 1
 NUM_BYTES_4 = 4
 NUM_BYTES_8 = 8
 OP_0 = b'\x00'
@@ -65,16 +66,16 @@ txid_reverse = reverse_byte_order(txid)
 vout = bytes_from_int_reversed(1, NUM_BYTES_4)
 
 # Dati della tx che sto per inviare
-input_count = bytes_from_int(1)[-1:]
+input_count = bytes_from_int(1, NUM_BYTES_1)
 version = bytes_from_int_reversed(1, NUM_BYTES_4)
 amount = bytes_from_int_reversed(1285900, NUM_BYTES_8) # 1285900 sats
 sequence = bytes.fromhex("ffffffff")
-output_count = bytes_from_int(1)[-1:]
+output_count = bytes_from_int(1, NUM_BYTES_1)
 locking_script_P2PKH = create_locking_script_P2PKH(K_dest_ser)
 len_locking_script_P2PKH = compact_size(locking_script_P2PKH)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
 sig_hash = bytes_from_int_reversed(1, NUM_BYTES_4)
-sig_hash_type = bytes_from_int(1)[-1:]
+sig_hash_type = bytes_from_int(1, NUM_BYTES_1)
 
 # ------------------------------------------------------------------------------ #
 #

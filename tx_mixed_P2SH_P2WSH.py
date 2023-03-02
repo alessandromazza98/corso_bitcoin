@@ -18,6 +18,7 @@ from Script import create_redeem_script_multisig, create_locking_script_P2PKH, c
 # -------------------------------------------------------------- #
 
 # Definisco alcune costanti
+NUM_BYTES_1 = 1
 NUM_BYTES_4 = 4
 NUM_BYTES_8 = 8
 OP_0 = b'\x00'
@@ -71,16 +72,16 @@ amount_received = bytes_from_int_reversed(11467, NUM_BYTES_8) # 11467 sats
 # Dati della tx che sto per inviare
 marker = b'\x00'
 flag = b'\x01'
-input_count = bytes_from_int(1)[-1:]
+input_count = bytes_from_int(1, NUM_BYTES_1)
 version = bytes_from_int_reversed(1, NUM_BYTES_4)
 amount_to_send = bytes_from_int_reversed(11200, NUM_BYTES_8) # 11300 sats
 sequence = bytes.fromhex("ffffffff")
-output_count = bytes_from_int(1)[-1:]
+output_count = bytes_from_int(1, NUM_BYTES_1)
 locking_script_P2PKH = create_locking_script_P2PKH(K_dest_ser)
 len_locking_script_P2PKH = compact_size(locking_script_P2PKH)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
 sig_hash = bytes_from_int_reversed(1, NUM_BYTES_4)
-sig_hash_type = bytes_from_int(1)[-1:]
+sig_hash_type = bytes_from_int(1, NUM_BYTES_1)
 
 # ------------------------------------------------------------------------------ #
 #

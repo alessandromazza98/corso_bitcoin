@@ -22,6 +22,8 @@ n = 1157920892373161954235709850086879078528375642790749043826051631415181614943
 G = 55066263022277343669578718895168534326250603453777594175500187360389116729240,\
     32670510020758816978083085130507043184471273380659243275938904335757337482424
 
+NUM_BYTES_32 = 32
+
 
 def tagged_hash(tag: str, data: bytes) -> bytes:
     """Tag Hash function performs sha256(sha256(tag) + sha256(tag) + input_data)"""
@@ -51,7 +53,7 @@ def sign_schnorr(private_key: int, msg: bytes, k=None) -> bytes:
         k = n - k
     e = int_from_bytes(tagged_hash("BIP0340/challenge", ser_public_key_schnorr(R)\
                                    + ser_public_key_schnorr(P) + msg))
-    sig = ser_public_key_schnorr(R) + bytes_from_int((k + e * private_key) % n)
+    sig = ser_public_key_schnorr(R) + bytes_from_int((k + e * private_key) % n, NUM_BYTES_32)
     return sig
 
 

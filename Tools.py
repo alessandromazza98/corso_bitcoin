@@ -1,6 +1,9 @@
 import hashlib
 from hashlib import sha256
 
+# Definisco alcune costanti
+NUM_BYTES_32 = 32
+
 
 def bytes_from_int_reversed(x: int, num_byte: int) -> bytes:
     """Transform an int input into its (num_byte)-byte representation and then reverse byte order"""
@@ -12,9 +15,9 @@ def int_from_bytes(b: bytes) -> int:
     return int.from_bytes(b, byteorder="big")
 
 
-def bytes_from_int(x: int) -> bytes:
+def bytes_from_int(x: int, num_byte: int) -> bytes:
     """Transform an int input into its byte representation"""
-    return x.to_bytes(32, byteorder="big")
+    return x.to_bytes(num_byte, byteorder="big")
 
 
 def reverse_byte_order(b: bytes) -> bytes:
@@ -25,7 +28,7 @@ def reverse_byte_order(b: bytes) -> bytes:
 def compact_size(data: bytes) -> bytes:
     """Return the compact size of the data, that is a byte representing an integer"""
     len_data = len(data)
-    len_data_bytes = bytes_from_int(len_data)
+    len_data_bytes = bytes_from_int(len_data, NUM_BYTES_32)
     if len_data < 252:
         return len_data_bytes[-1:]
     elif len_data < 65535:

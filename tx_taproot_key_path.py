@@ -16,6 +16,7 @@ from Script import create_locking_script_P2TR
 
 
 # Definisco alcune costanti
+NUM_BYTES_1 = 1
 NUM_BYTES_4 = 4
 NUM_BYTES_8 = 8
 
@@ -47,16 +48,16 @@ len_locking_script_input = compact_size(locking_script_input)
 # Dati della tx che sto per inviare
 marker = b'\x00'
 flag = b'\x01'
-input_count = bytes_from_int(1)[-1:]
+input_count = bytes_from_int(1, NUM_BYTES_1)
 version = bytes_from_int_reversed(1, NUM_BYTES_4)
 amount_to_send = bytes_from_int_reversed(5300, NUM_BYTES_8) # 5300 sats
 sequence = bytes.fromhex("ffffffff")
-output_count = bytes_from_int(1)[-1:]
+output_count = bytes_from_int(1, NUM_BYTES_1)
 locking_script_dest = create_locking_script_P2TR(K_ser)
 len_locking_script_dest = compact_size(locking_script_dest)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
 sig_hash = bytes_from_int_reversed(0, NUM_BYTES_4) # SIGHASH_ALL_TAPROOT 00
-sig_hash_type = bytes_from_int(0)[-1:]
+sig_hash_type = bytes_from_int(0, NUM_BYTES_1)
 
 # ------------------------------------------------------------------------------ #
 #

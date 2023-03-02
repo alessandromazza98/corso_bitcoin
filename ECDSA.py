@@ -20,6 +20,8 @@ n = 1157920892373161954235709850086879078528375642790749043826051631415181614943
 G = 55066263022277343669578718895168534326250603453777594175500187360389116729240,\
     32670510020758816978083085130507043184471273380659243275938904335757337482424
 
+NUM_BYTES_32 = 32
+
 
 def inverse(numero, primo=p):
     """Inverse operation in mod p"""
@@ -78,7 +80,7 @@ def sign(private_key: int, msg: bytes, k=None):
     # choose the "low-s" value of s
     if s > n // 2:
         s = n - s
-    return bytes_from_int(r), bytes_from_int(s)
+    return bytes_from_int(r, NUM_BYTES_32), bytes_from_int(s, NUM_BYTES_32)
 
 
 def verify(public_key: bytes, msg: bytes, sig: (int, int)) -> (bytes, bytes):

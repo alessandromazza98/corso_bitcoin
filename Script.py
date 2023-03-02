@@ -1,6 +1,9 @@
 from Tools import hash160, compact_size, bytes_from_int, sha256
 
 
+# Definisco alcune costanti
+NUM_BYTE_1 = 1
+
 def create_locking_script_P2PKH(public_key: bytes) -> bytes:
     """Create P2PKH locking script from public key"""
     dup = b'\x76'
@@ -23,8 +26,8 @@ def create_locking_script_P2SH(script: bytes) -> bytes:
 
 def create_redeem_script_multisig(public_keys: [bytes], m: int, n: int) -> bytes:
     """Create a redeem multi-signature script m-of-n from public keys, m and n"""
-    OP_M = bytes_from_int(m + 0x50)[-1:]
-    OP_N = bytes_from_int(n + 0x50)[-1:]
+    OP_M = bytes_from_int(m + 0x50, NUM_BYTE_1)
+    OP_N = bytes_from_int(n + 0x50, NUM_BYTE_1)
     keys = [compact_size(public_key) + public_key for public_key in public_keys]
     keys = b''.join(keys)
     OP_CHECKMULTISIG = b'\xae'

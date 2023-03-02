@@ -16,6 +16,7 @@ from Script import create_locking_script_P2PKH
 
 
 # Definisco alcune costanti
+NUM_BYTES_1 = 1
 NUM_BYTES_4 = 4
 NUM_BYTES_8 = 8
 
@@ -44,14 +45,14 @@ locking_script = create_locking_script_P2PKH(K_ser)
 len_locking_script = compact_size(locking_script)
 
 # Dati della tx che sto per inviare
-input_count = bytes_from_int(1)[-1:]
+input_count = bytes_from_int(1, NUM_BYTES_1)
 version = bytes_from_int_reversed(1, NUM_BYTES_4)
 amount = bytes_from_int_reversed(10700, NUM_BYTES_8) # 10700 sats
 sequence = bytes.fromhex("ffffffff")
-output_count = bytes_from_int(1)[-1:]
+output_count = bytes_from_int(1, NUM_BYTES_1)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
 sig_hash = bytes_from_int_reversed(1, NUM_BYTES_4)
-sig_hash_type = bytes_from_int(1)[-1:]
+sig_hash_type = bytes_from_int(1, NUM_BYTES_1)
 
 # ------------------------------------------------------------------------------ #
 #
