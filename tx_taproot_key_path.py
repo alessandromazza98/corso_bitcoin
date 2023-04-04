@@ -14,6 +14,35 @@ from Script import create_locking_script_P2TR
 #
 # -------------------------------------------------------------- #
 
+# -------------------------------------------------------------- #
+#
+# La struttura di una transazione bitcoin segwit
+#
+# -version: 4 bytes [∞]
+# -input count: variabile (compact size), solitamente 1 byte
+# -inputs:  {
+#             -txid: 32 bytes [∞]
+#             -vout: 4 bytes [∞]
+#             -unlocking script size: variabile (compact size)
+#             -unlocking script: variabile
+#             -sequence: 4 bytes [∞]
+#           }
+# -output count: variabile (compact size), solitamente 1 byte
+# -outputs: {
+#             -value: 8 bytes [∞]
+#             -locking script size: variabile (compact size)
+#             -locking script: variabile
+#           }
+# -locktime: 4 bytes [∞]
+# -witness: variabile
+#
+# [∞] -> notazione little endian
+# ESEMPIO: 100 (big endian) <-> 001 (little endian)
+# ESEMPIO: a2 43 f1 (big endian) <-> f1 43 a2 (little endian)
+#
+# NB: 1 byte viene rappresentato con due cifre in esadecimale!
+#
+# -------------------------------------------------------------- #
 
 # Definisco alcune costanti
 NUM_BYTES_1 = 1
@@ -35,6 +64,14 @@ address = generate_address_P2TR_testnet(K_ser)  # tb1pgm4lk5h9yzm5zjpezve78hffmw
 # successivamente andare a spendere, creando da zero la tx
 # di spesa. Fhorte!
 #
+# Dalla tx con cui ricevo i bitcoin devo prendere
+# le seguenti informazioni: di fatto l'UTXO
+#
+# -txid
+# -vout
+# -amount received
+# -locking script
+#
 # -------------------------------------------------------------- #
 
 # Dati delle tx con cui ho ricevuto i sats
@@ -42,22 +79,50 @@ txid = bytes.fromhex("1810aa57b7852c3e145801bec7ca668994c902b99e7f3e16c140c25b16
 txid_reverse = reverse_byte_order(txid)
 vout = bytes_from_int_reversed(1, NUM_BYTES_4)
 amount_received = bytes_from_int_reversed(5438, NUM_BYTES_8) # 5438 sats
-locking_script_input = create_locking_script_P2TR(K_ser)
+locking_script_input = bytes.fromhex("")
 len_locking_script_input = compact_size(locking_script_input)
+
+# -------------------------------------------------------------- #
+#
+# Adesso devo comporre i campi della mia tx. Nel particolare
+# devo stabilire:
+#
+# -marker
+# -flag
+# -version
+# -input count
+# -output count
+# -locktime
+#
+# Per ogni input devo stabilire:
+#
+# -sequence
+# -sighash
+#
+# E per ogni output che creo devo stabilire:
+#
+# -amount
+# -locking script
+#
+# -------------------------------------------------------------- #
 
 # Dati della tx che sto per inviare
 marker = b'\x00'
 flag = b'\x01'
-input_count = bytes_from_int(1, NUM_BYTES_1)
 version = bytes_from_int_reversed(1, NUM_BYTES_4)
-amount_to_send = bytes_from_int_reversed(5300, NUM_BYTES_8) # 5300 sats
-sequence = bytes.fromhex("ffffffff")
+input_count = bytes_from_int(1, NUM_BYTES_1)
 output_count = bytes_from_int(1, NUM_BYTES_1)
-locking_script_dest = create_locking_script_P2TR(K_ser)
-len_locking_script_dest = compact_size(locking_script_dest)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
+
+# Dati relativi a input #0
+sequence = bytes.fromhex("ffffffff")
 sig_hash = bytes_from_int_reversed(0, NUM_BYTES_4) # SIGHASH_ALL_TAPROOT 00
 sig_hash_type = bytes_from_int(0, NUM_BYTES_1)
+
+# Dati relativi a UTXO #0
+amount_to_send = bytes_from_int_reversed(5300, NUM_BYTES_8) # 5300 sats
+locking_script_dest = create_locking_script_P2TR(K_ser)
+len_locking_script_dest = compact_size(locking_script_dest)
 
 # ------------------------------------------------------------------------------ #
 #
@@ -120,7 +185,7 @@ signature = sign_schnorr(private_key=k, msg=tx_hash, k=100)
 #
 # Tale witness è composta nel seguente modo:
 # -witness_count: compact_size #byte per descrivere il numero di elementi presenti
-# Per ogni elemento presente:
+# + per ogni elemento presente:
 # -compact_size #bytes da cui è composto l'elemento
 # -elemento rappresentato in bytes
 #

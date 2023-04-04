@@ -4,13 +4,41 @@ from Address import generate_address_P2PKH_testnet
 from Tools import compact_size, reverse_byte_order, bytes_from_int_reversed, bytes_from_int, sha256_2, DER_encoding
 from Script import create_locking_script_P2PKH
 
-
 # -------------------------------------------------------------- #
 #
 # Obiettivo: creare tx P2PKH da zero!
 #
 # Faccio una transazione che invia i fondi a me stesso, circolare
 # my_address -> my_address
+#
+# -------------------------------------------------------------- #
+
+# -------------------------------------------------------------- #
+#
+# La struttura di una transazione bitcoin
+#
+# -version: 4 bytes [∞]
+# -input count: variabile (compact size), solitamente 1 byte
+# -inputs:  {
+#             -txid: 32 bytes [∞]
+#             -vout: 4 bytes [∞]
+#             -unlocking script size: variabile (compact size)
+#             -unlocking script: variabile
+#             -sequence: 4 bytes [∞]
+#           }
+# -output count: variabile (compact size), solitamente 1 byte
+# -outputs: {
+#             -value: 8 bytes [∞]
+#             -locking script size: variabile (compact size)
+#             -locking script: variabile
+#           }
+# -locktime: 4 bytes [∞]
+#
+# [∞] -> notazione little endian
+# ESEMPIO: 100 (big endian) <-> 001 (little endian)
+# ESEMPIO: a2 43 f1 (big endian) <-> f1 43 a2 (little endian)
+#
+# NB: 1 byte viene rappresentato con due cifre in esadecimale!
 #
 # -------------------------------------------------------------- #
 
@@ -35,24 +63,59 @@ address = generate_address_P2PKH_testnet(K_ser)  # my1gegEiLdsJcZ3oNsDKjNVDT1fRj
 # successivamente andare a spendere, creando da zero la tx
 # di spesa. Fhorte!
 #
+# Dalla tx con cui ricevo i bitcoin devo prendere
+# le seguenti informazioni: di fatto l'UTXO
+#
+# -txid
+# -vout
+# -locking script
+#
 # -------------------------------------------------------------- #
 
 # Dati delle tx con cui ho ricevuto i sats
-txid = bytes.fromhex("f31a652c120f3059a21a992c47440692790c6fb018bf7337a333c3b65bbaac43")
+txid = bytes.fromhex("")
 txid_reverse = reverse_byte_order(txid)
 vout = bytes_from_int_reversed(1, NUM_BYTES_4)
-locking_script = create_locking_script_P2PKH(K_ser)
-len_locking_script = compact_size(locking_script)
+locking_script_input = bytes.fromhex("")
+len_locking_script_input = compact_size(locking_script_input)
+
+# -------------------------------------------------------------- #
+#
+# Adesso devo comporre i campi della mia tx. Nel particolare
+# devo stabilire:
+#
+# -version
+# -input count
+# -output count
+# -locktime
+#
+# Per ogni input devo stabilire:
+#
+# -sequence
+# -sighash
+#
+# E per ogni output che creo devo stabilire:
+#
+# -amount
+# -locking script
+#
+# -------------------------------------------------------------- #
 
 # Dati della tx che sto per inviare
-input_count = bytes_from_int(1, NUM_BYTES_1)
 version = bytes_from_int_reversed(1, NUM_BYTES_4)
-amount = bytes_from_int_reversed(10700, NUM_BYTES_8) # 10700 sats
-sequence = bytes.fromhex("ffffffff")
+input_count = bytes_from_int(1, NUM_BYTES_1)
 output_count = bytes_from_int(1, NUM_BYTES_1)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
+
+# Dati relativi a input #0
+sequence = bytes.fromhex("ffffffff")
 sig_hash = bytes_from_int_reversed(1, NUM_BYTES_4)
 sig_hash_type = bytes_from_int(1, NUM_BYTES_1)
+
+# Dati relativi a UTXO #0
+amount = bytes_from_int_reversed(10700, NUM_BYTES_8) # 10700 sats
+locking_script_dest = create_locking_script_P2PKH(K_ser)
+len_locking_script_dest = compact_size(locking_script_dest)
 
 # ------------------------------------------------------------------------------ #
 #
@@ -63,8 +126,8 @@ sig_hash_type = bytes_from_int(1, NUM_BYTES_1)
 # circolare, coincide con il locking script di questa stessa transazione
 #
 # ------------------------------------------------------------------------------ #
-tx_to_be_signed = version + input_count + txid_reverse + vout + len_locking_script + locking_script + sequence\
-                  + output_count + amount + len_locking_script + locking_script + locktime + sig_hash
+tx_to_be_signed = version + input_count + txid_reverse + vout + len_locking_script_input + locking_script_input + sequence \
+                  + output_count + amount + len_locking_script_dest + locking_script_dest + locktime + sig_hash
 
 # Faccio l'hash del messaggio
 tx_hash = sha256_2(tx_to_be_signed)
@@ -87,8 +150,8 @@ len_unlocking_script = compact_size(unlocking_script)
 #
 # ------------------------------------------------------------------------------ #
 
-tx_signed = version + input_count + txid_reverse + vout + len_unlocking_script + unlocking_script + sequence\
-            + output_count + amount + len_locking_script + locking_script + locktime
+tx_signed = version + input_count + txid_reverse + vout + len_unlocking_script + unlocking_script + sequence \
+            + output_count + amount + len_locking_script_dest + locking_script_dest + locktime
 
 print(tx_signed.hex())
 

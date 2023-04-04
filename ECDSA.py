@@ -44,7 +44,6 @@ def add(P1, P2):
     # If p1 == p2 -> double(p1)
     if p1x == p2x and p1y == p2y:
         return double((p1x, p1y))
-
     s = ((p1y - p2y) * inverse(p1x - p2x)) % p
     px_add = (s ** 2 - p1x - p2x) % p
     py_add = (s * (p1x - px_add) - p1y) % p

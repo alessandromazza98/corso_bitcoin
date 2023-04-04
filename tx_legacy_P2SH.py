@@ -17,6 +17,35 @@ from Script import create_redeem_script_multisig, create_locking_script_P2PKH
 #
 # -------------------------------------------------------------- #
 
+# -------------------------------------------------------------- #
+#
+# La struttura di una transazione bitcoin
+#
+# -version: 4 bytes [∞]
+# -input count: variabile (compact size), solitamente 1 byte
+# -inputs:  {
+#             -txid: 32 bytes [∞]
+#             -vout: 4 bytes [∞]
+#             -unlocking script size: variabile (compact size)
+#             -unlocking script: variabile
+#             -sequence: 4 bytes [∞]
+#           }
+# -output count: variabile (compact size), solitamente 1 byte
+# -outputs: {
+#             -value: 8 bytes [∞]
+#             -locking script size: variabile (compact size)
+#             -locking script: variabile
+#           }
+# -locktime: 4 bytes [∞]
+#
+# [∞] -> notazione little endian
+# ESEMPIO: 100 (big endian) <-> 001 (little endian)
+# ESEMPIO: a2 43 f1 (big endian) <-> f1 43 a2 (little endian)
+#
+# NB: 1 byte viene rappresentato con due cifre in esadecimale!
+#
+# -------------------------------------------------------------- #
+
 # Definisco alcune costanti
 NUM_BYTES_1 = 1
 NUM_BYTES_4 = 4
@@ -58,6 +87,16 @@ address_dest = generate_address_P2PKH_testnet(K_dest_ser)  # my1gegEiLdsJcZ3oNsD
 # successivamente andare a spendere, creando da zero la tx
 # di spesa. Fhorte!
 #
+# Dalla tx con cui ricevo i bitcoin devo prendere
+# le seguenti informazioni: di fatto l'UTXO
+#
+# -txid
+# -vout
+#
+# In questo caso ho già calcolato il redeem script e non ho
+# bisogno di prendere il locking script presente nella UTXO
+# che mi ha inviato i bitcoin
+#
 # -------------------------------------------------------------- #
 
 # Dati delle tx con cui ho ricevuto i sats
@@ -65,17 +104,43 @@ txid = bytes.fromhex("012ae7ccd6b3e7da5b5c824dc25a2bd16d09ab57590f4552e840ddc24e
 txid_reverse = reverse_byte_order(txid)
 vout = bytes_from_int_reversed(1, NUM_BYTES_4)
 
+# -------------------------------------------------------------- #
+#
+# Adesso devo comporre i campi della mia tx. Nel particolare
+# devo stabilire:
+#
+# -version
+# -input count
+# -output count
+# -locktime
+#
+# Per ogni input devo stabilire:
+#
+# -sequence
+# -sighash
+#
+# E per ogni output che creo devo stabilire:
+#
+# -amount
+# -locking script
+#
+# -------------------------------------------------------------- #
+
 # Dati della tx che sto per inviare
-input_count = bytes_from_int(1, NUM_BYTES_1)
 version = bytes_from_int_reversed(1, NUM_BYTES_4)
-amount = bytes_from_int_reversed(1285900, NUM_BYTES_8) # 1285900 sats
-sequence = bytes.fromhex("ffffffff")
+input_count = bytes_from_int(1, NUM_BYTES_1)
 output_count = bytes_from_int(1, NUM_BYTES_1)
-locking_script_P2PKH = create_locking_script_P2PKH(K_dest_ser)
-len_locking_script_P2PKH = compact_size(locking_script_P2PKH)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
+
+# Dati relativi a input #0
+sequence = bytes.fromhex("ffffffff")
 sig_hash = bytes_from_int_reversed(1, NUM_BYTES_4)
 sig_hash_type = bytes_from_int(1, NUM_BYTES_1)
+
+# Dati relativi a UTXO #0
+amount = bytes_from_int_reversed(1285900, NUM_BYTES_8) # 1285900 sats
+locking_script_P2PKH = create_locking_script_P2PKH(K_dest_ser)
+len_locking_script_P2PKH = compact_size(locking_script_P2PKH)
 
 # ------------------------------------------------------------------------------ #
 #

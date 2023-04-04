@@ -29,6 +29,35 @@ from Script import create_locking_script_P2TR
 #
 # -------------------------------------------------------------- #
 
+# -------------------------------------------------------------- #
+#
+# La struttura di una transazione bitcoin segwit
+#
+# -version: 4 bytes [∞]
+# -input count: variabile (compact size), solitamente 1 byte
+# -inputs:  {
+#             -txid: 32 bytes [∞]
+#             -vout: 4 bytes [∞]
+#             -unlocking script size: variabile (compact size)
+#             -unlocking script: variabile
+#             -sequence: 4 bytes [∞]
+#           }
+# -output count: variabile (compact size), solitamente 1 byte
+# -outputs: {
+#             -value: 8 bytes [∞]
+#             -locking script size: variabile (compact size)
+#             -locking script: variabile
+#           }
+# -locktime: 4 bytes [∞]
+# -witness: variabile
+#
+# [∞] -> notazione little endian
+# ESEMPIO: 100 (big endian) <-> 001 (little endian)
+# ESEMPIO: a2 43 f1 (big endian) <-> f1 43 a2 (little endian)
+#
+# NB: 1 byte viene rappresentato con due cifre in esadecimale!
+#
+# -------------------------------------------------------------- #
 
 # Definisco alcune costanti
 NUM_BYTES_1 = 1
@@ -118,6 +147,14 @@ address_dest = generate_address_P2TR_testnet(K_dest_ser)  # tb1pgm4lk5h9yzm5zjpe
 # successivamente andare a spendere, creando da zero la tx
 # di spesa. Fhorte!
 #
+# Dalla tx con cui ricevo i bitcoin devo prendere
+# le seguenti informazioni: di fatto l'UTXO
+#
+# -txid
+# -vout
+# -amount received
+# -locking script
+#
 # -------------------------------------------------------------- #
 
 # Dati delle tx con cui ho ricevuto i sats
@@ -125,22 +162,50 @@ txid = bytes.fromhex("1a7ee5854b190b91e0d2dc8951266365bc724bcada1e829164f3b299e0
 txid_reverse = reverse_byte_order(txid)
 vout = bytes_from_int_reversed(0, NUM_BYTES_4)
 amount_received = bytes_from_int_reversed(5189, NUM_BYTES_8) # 5189 sats
-locking_script_input = create_locking_script_P2TR(Q_ser)
+locking_script_input = bytes.fromhex("")
 len_locking_script_input = compact_size(locking_script_input)
+
+# -------------------------------------------------------------- #
+#
+# Adesso devo comporre i campi della mia tx. Nel particolare
+# devo stabilire:
+#
+# -marker
+# -flag
+# -version
+# -input count
+# -output count
+# -locktime
+#
+# Per ogni input devo stabilire:
+#
+# -sequence
+# -sighash
+#
+# E per ogni output che creo devo stabilire:
+#
+# -amount
+# -locking script
+#
+# -------------------------------------------------------------- #
 
 # Dati della tx che sto per inviare
 marker = b'\x00'
 flag = b'\x01'
-input_count = bytes_from_int(1, NUM_BYTES_1)
 version = bytes_from_int_reversed(1, NUM_BYTES_4)
-amount_to_send = bytes_from_int_reversed(5000, NUM_BYTES_8) # 5000 sats
-sequence = bytes.fromhex("ffffffff")
+input_count = bytes_from_int(1, NUM_BYTES_1)
 output_count = bytes_from_int(1, NUM_BYTES_1)
-locking_script_dest = create_locking_script_P2TR(K_dest_ser)
-len_locking_script_dest = compact_size(locking_script_dest)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
+
+# Dati relativi a input #0
+sequence = bytes.fromhex("ffffffff")
 sig_hash = bytes_from_int_reversed(0, NUM_BYTES_4) # SIGHASH_ALL_TAPROOT 00
 sig_hash_type = bytes_from_int(0, NUM_BYTES_1)
+
+# Dati relativi a UTXO #0
+amount_to_send = bytes_from_int_reversed(5000, NUM_BYTES_8) # 5000 sats
+locking_script_dest = create_locking_script_P2TR(K_dest_ser)
+len_locking_script_dest = compact_size(locking_script_dest)
 
 # ------------------------------------------------------------------------------ #
 #
@@ -214,7 +279,7 @@ signature = sign_schnorr(private_key=k1, msg=tx_hash, k=100)
 #
 # Tale witness è composta nel seguente modo:
 # -witness_count: compact_size #byte per descrivere il numero di elementi presenti
-# Per ogni elemento presente:
+# + per ogni elemento presente:
 # -compact_size #bytes da cui è composto l'elemento
 # -elemento rappresentato in bytes
 #
@@ -235,9 +300,9 @@ else:
     parity_bit = b'\x00'
 
 # control block:
-# Its first byte stores the leaf version (#3) (top 7 bits) and the sign bit (#6) (bottom bit).
-# The next 32 bytes store the (X coordinate only, because x-only key) of the internal public key (#4)
-# Every block of 32 bytes after that encodes a component of the Merkle path (#5) connecting the leaf
+# Its first byte stores the leaf version (top 7 bits) and the sign bit (bottom bit).
+# The next 32 bytes store the (X coordinate only, because x-only key) of the internal public key
+# Every block of 32 bytes after that encodes a component of the Merkle path connecting the leaf
 # to the root (and then, the tweak), going in bottom-up direction.
 control_block = bytes([LEAF_VER[0] + parity_bit[0]]) + P_ser + tapleaf_s2 + tapleaf_s3
 
