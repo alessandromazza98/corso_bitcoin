@@ -82,12 +82,12 @@ def sign(private_key: int, msg: bytes, k=None):
     return bytes_from_int(r, NUM_BYTES_32), bytes_from_int(s, NUM_BYTES_32)
 
 
-def verify(public_key: bytes, msg: bytes, sig: (int, int)) -> (bytes, bytes):
+def verify(public_key: bytes, msg: bytes, sig: (bytes, bytes)) -> bool:
     """Verify a signature in relation of a message and a public key"""
     r, s = sig
     # generate the two parts of the final equation
-    first_addend = multiply(inverse(s, n) * int_from_bytes(msg))
-    second_addend = multiply(inverse(s, n) * r, int_from_bytes(public_key))
+    first_addend = multiply(inverse(int_from_bytes(s), n) * int_from_bytes(msg))
+    second_addend = multiply(inverse(int_from_bytes(s), n) * int_from_bytes(r), int_from_bytes(public_key))
     # add the two points generated before in order to get R
     Rx, _ = add(first_addend, second_addend)
     return Rx == r
