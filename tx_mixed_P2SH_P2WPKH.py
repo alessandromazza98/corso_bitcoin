@@ -20,6 +20,8 @@ from Script import create_locking_script_P2WPKH, create_locking_script_P2PKH
 # La struttura di una transazione bitcoin segwit
 #
 # -version: 4 bytes [∞]
+# -marker: 1 byte
+# -flag: 1 byte
 # -input count: variabile (compact size), solitamente 1 byte
 # -inputs:  {
 #             -txid: 32 bytes [∞]
@@ -34,8 +36,8 @@ from Script import create_locking_script_P2WPKH, create_locking_script_P2PKH
 #             -locking script size: variabile (compact size)
 #             -locking script: variabile
 #           }
-# -locktime: 4 bytes [∞]
 # -witness: variabile
+# -locktime: 4 bytes [∞]
 #
 # [∞] -> notazione little endian
 # ESEMPIO: 100 (big endian) <-> 001 (little endian)
@@ -93,10 +95,10 @@ address_dest = generate_address_P2PKH_testnet(K_dest_ser)  # my1gegEiLdsJcZ3oNsD
 # -------------------------------------------------------------- #
 
 # Dati delle tx con cui ho ricevuto i sats
-txid = bytes.fromhex("40173cecfa957f06183861dd4fbe4d48565ee5d989e879ff07648e5bacfe47db")
+txid = bytes.fromhex("88d88cdb8e43df4e23cf9ed19fa5af712bd8f5a6cdb1c9c68993de76165efa7b")
 txid_reverse = reverse_byte_order(txid)
-vout = bytes_from_int_reversed(1, NUM_BYTES_4)
-amount_received = bytes_from_int_reversed(1851574, NUM_BYTES_8) # 1851574 sats
+vout = bytes_from_int_reversed(0, NUM_BYTES_4)
+amount_received = bytes_from_int_reversed(1459235, NUM_BYTES_8) # 1459235 sats
 
 # -------------------------------------------------------------- #
 #
@@ -131,12 +133,12 @@ output_count = bytes_from_int(1, NUM_BYTES_1)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
 
 # Dati relativi a input #0
-sequence = bytes.fromhex("ffffffff")
+sequence = reverse_byte_order(bytes.fromhex("ffffffff"))
 sig_hash = bytes_from_int_reversed(1, NUM_BYTES_4)
 sig_hash_type = bytes_from_int(1, NUM_BYTES_1)
 
 # Dati relativi a UTXO #0
-amount_to_send = bytes_from_int_reversed(1851400, NUM_BYTES_8) # 1851400 sats
+amount_to_send = bytes_from_int_reversed(1458500, NUM_BYTES_8) # 1458500 sats
 locking_script_P2PKH = create_locking_script_P2PKH(K_dest_ser)
 len_locking_script_P2PKH = compact_size(locking_script_P2PKH)
 
@@ -151,7 +153,7 @@ len_locking_script_P2PKH = compact_size(locking_script_P2PKH)
 # ------------------------------------------------------------------------------ #
 
 # scriptCode of the input
-scriptCode = bytes.fromhex("1976a914" + "" + "88ac")
+scriptCode = create_locking_script_P2PKH(K_ser)
 scriptCode = compact_size(scriptCode) + scriptCode
 
 # hashPrevouts = hash256^2(txid_reverse + vout of all inputs)
@@ -226,3 +228,27 @@ tx_signed = version + marker + flag + input_count + txid_reverse + vout + len_un
 print(tx_signed.hex())
 
 # tx SPENT!
+
+print()
+print("version: " + version.hex())
+print("marker: " + marker.hex())
+print("flag: " + flag.hex())
+print("input count: " + input_count.hex())
+print("txid reversed: " + txid_reverse.hex())
+print("vout: " + vout.hex())
+print("len unlocking script: " + len_unlocking_script.hex())
+print("unlocking script: " + unlocking_script.hex())
+print("sequence: " + sequence.hex())
+print("output count: " + output_count.hex())
+print("amount: " + amount_to_send.hex())
+print("len locking script: " + len_locking_script_P2PKH.hex())
+print("locking script: " + locking_script_P2PKH.hex())
+print("witness1: " + witness.hex())
+print("locktime: " + locktime.hex())
+
+print()
+print("witness count: " + witness_count.hex())
+print("signature size: " + compact_size(signature_der_encoded).hex())
+print("signature: " + signature_der_encoded.hex())
+print("len public key: " + compact_size(K_ser).hex())
+print("public key: " + K_ser.hex())

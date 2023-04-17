@@ -73,10 +73,10 @@ address = generate_address_P2PKH_testnet(K_ser)  # my1gegEiLdsJcZ3oNsDKjNVDT1fRj
 # -------------------------------------------------------------- #
 
 # Dati delle tx con cui ho ricevuto i sats
-txid = bytes.fromhex("")
+txid = bytes.fromhex("e81c6a989848bb6f86be4ebbae4892741125c548c5f80a0b6f89597219ac3c3c")
 txid_reverse = reverse_byte_order(txid)
 vout = bytes_from_int_reversed(1, NUM_BYTES_4)
-locking_script_input = bytes.fromhex("")
+locking_script_input = bytes.fromhex("76a914bfe9245401f8296878931281b14236e352bc443388ac")
 len_locking_script_input = compact_size(locking_script_input)
 
 # -------------------------------------------------------------- #
@@ -108,12 +108,12 @@ output_count = bytes_from_int(1, NUM_BYTES_1)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
 
 # Dati relativi a input #0
-sequence = bytes.fromhex("ffffffff")
+sequence = reverse_byte_order(bytes.fromhex("ffffffff"))
 sig_hash = bytes_from_int_reversed(1, NUM_BYTES_4)
 sig_hash_type = bytes_from_int(1, NUM_BYTES_1)
 
 # Dati relativi a UTXO #0
-amount = bytes_from_int_reversed(10700, NUM_BYTES_8) # 10700 sats
+amount = bytes_from_int_reversed(1092000, NUM_BYTES_8) # 1092000 sats
 locking_script_dest = create_locking_script_P2PKH(K_ser)
 len_locking_script_dest = compact_size(locking_script_dest)
 
@@ -156,3 +156,23 @@ tx_signed = version + input_count + txid_reverse + vout + len_unlocking_script +
 print(tx_signed.hex())
 
 # tx SPENT!
+
+print("version: " + version.hex())
+print("input count: " + input_count.hex())
+print("txid reversed: " + txid_reverse.hex())
+print("vout: " + vout.hex())
+print("len unlocking script: " + len_unlocking_script.hex())
+print("unlocking script: " + unlocking_script.hex())
+print("sequence: " + sequence.hex())
+print("output count: " + output_count.hex())
+print("amount: " + amount.hex())
+print("len locking script: " + len_locking_script_dest.hex())
+print("locking script: " + locking_script_dest.hex())
+print("locktime: " + locktime.hex())
+
+
+print()
+print("signature size: " + compact_size(signature_der_encoded).hex())
+print("signature: " + signature_der_encoded.hex())
+print("len public key: " + compact_size(K_ser).hex())
+print("public key: " + K_ser.hex())

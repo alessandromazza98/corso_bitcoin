@@ -34,6 +34,8 @@ from Script import create_locking_script_P2TR
 # La struttura di una transazione bitcoin segwit
 #
 # -version: 4 bytes [∞]
+# -marker: 1 byte
+# -flag: 1 byte
 # -input count: variabile (compact size), solitamente 1 byte
 # -inputs:  {
 #             -txid: 32 bytes [∞]
@@ -48,8 +50,8 @@ from Script import create_locking_script_P2TR
 #             -locking script size: variabile (compact size)
 #             -locking script: variabile
 #           }
-# -locktime: 4 bytes [∞]
 # -witness: variabile
+# -locktime: 4 bytes [∞]
 #
 # [∞] -> notazione little endian
 # ESEMPIO: 100 (big endian) <-> 001 (little endian)
@@ -158,11 +160,11 @@ address_dest = generate_address_P2TR_testnet(K_dest_ser)  # tb1pgm4lk5h9yzm5zjpe
 # -------------------------------------------------------------- #
 
 # Dati delle tx con cui ho ricevuto i sats
-txid = bytes.fromhex("1a7ee5854b190b91e0d2dc8951266365bc724bcada1e829164f3b299e032fac6")
+txid = bytes.fromhex("66daa444f5786f43be8746877f5a79dfb8b189ae361eedf350453d6c28e859e9")
 txid_reverse = reverse_byte_order(txid)
 vout = bytes_from_int_reversed(0, NUM_BYTES_4)
-amount_received = bytes_from_int_reversed(5189, NUM_BYTES_8) # 5189 sats
-locking_script_input = bytes.fromhex("")
+amount_received = bytes_from_int_reversed(14200, NUM_BYTES_8) # 14200 sats
+locking_script_input = bytes.fromhex("5120aecd6fa22a09e9cb24a01a3218fed7e02fc2fe5403b13eaf38561e8df55e2bc6")
 len_locking_script_input = compact_size(locking_script_input)
 
 # -------------------------------------------------------------- #
@@ -198,12 +200,12 @@ output_count = bytes_from_int(1, NUM_BYTES_1)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
 
 # Dati relativi a input #0
-sequence = bytes.fromhex("ffffffff")
+sequence = reverse_byte_order(bytes.fromhex("ffffffff"))
 sig_hash = bytes_from_int_reversed(0, NUM_BYTES_4) # SIGHASH_ALL_TAPROOT 00
 sig_hash_type = bytes_from_int(0, NUM_BYTES_1)
 
 # Dati relativi a UTXO #0
-amount_to_send = bytes_from_int_reversed(5000, NUM_BYTES_8) # 5000 sats
+amount_to_send = bytes_from_int_reversed(13500, NUM_BYTES_8) # 13500 sats
 locking_script_dest = create_locking_script_P2TR(K_dest_ser)
 len_locking_script_dest = compact_size(locking_script_dest)
 
@@ -241,7 +243,7 @@ sha_outputs = sha256(amount_to_send + len_locking_script_dest + locking_script_d
 # and the first byte of the last element is 0x50)
 spend_type = bytes.fromhex("02") # script path -> ext_flag = 1
 
-# input_index (4): index of this input in the transaction input vector. Index of the first input is 0
+# input_index (4) [∞]: index of this input in the transaction input vector. Index of the first input is 0
 input_index = bytes_from_int_reversed(0, NUM_BYTES_4)
 
 # We use SCRIPT PATH, so we have to add
@@ -323,3 +325,35 @@ tx_signed = version + marker + flag + input_count + txid_reverse + vout + b'\x00
 print(tx_signed.hex())
 
 # tx SPENT!
+
+print()
+print("version: " + version.hex())
+print("marker: " + marker.hex())
+print("flag: " + flag.hex())
+print("input count: " + input_count.hex())
+print("txid reversed: " + txid_reverse.hex())
+print("vout: " + vout.hex())
+print("len unlocking script: 00")
+print("sequence: " + sequence.hex())
+print("output count: " + output_count.hex())
+print("amount: " + amount_to_send.hex())
+print("len locking script: " + len_locking_script_dest.hex())
+print("locking script: " + locking_script_dest.hex())
+print("witness1 : " + witness.hex())
+print("locktime: " + locktime.hex())
+
+
+print()
+print("witness count: " + witness_count.hex())
+print("signature size: " + compact_size(signature).hex())
+print("signature: " + signature.hex())
+print("script 1 size: " + compact_size(s1).hex())
+print("script 1: " + s1.hex())
+print("control block size: " + compact_size(control_block).hex())
+print("control block: " + control_block.hex())
+
+print()
+print("LEAF VERSION & PARITY BIT: " + bytes([LEAF_VER[0] + parity_bit[0]]).hex())
+print("Chiave pubblica interna P: " + P_ser.hex())
+print("tapleaf s2: " + tapleaf_s2.hex())
+print("tapleaf s3: " + tapleaf_s3.hex())

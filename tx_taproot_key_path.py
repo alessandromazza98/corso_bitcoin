@@ -3,7 +3,7 @@ from Keys import ser_public_key_schnorr
 from Address import generate_address_P2TR_testnet
 from Schnorr import tagged_hash, sign_schnorr
 from Tools import compact_size, reverse_byte_order, bytes_from_int_reversed, bytes_from_int, sha256
-from Script import create_locking_script_P2TR
+from Script import create_locking_script_P2TR, create_locking_script_P2PKH
 
 # -------------------------------------------------------------- #
 #
@@ -19,6 +19,8 @@ from Script import create_locking_script_P2TR
 # La struttura di una transazione bitcoin segwit
 #
 # -version: 4 bytes [∞]
+# -marker: 1 byte
+# -flag: 1 byte
 # -input count: variabile (compact size), solitamente 1 byte
 # -inputs:  {
 #             -txid: 32 bytes [∞]
@@ -33,8 +35,8 @@ from Script import create_locking_script_P2TR
 #             -locking script size: variabile (compact size)
 #             -locking script: variabile
 #           }
-# -locktime: 4 bytes [∞]
 # -witness: variabile
+# -locktime: 4 bytes [∞]
 #
 # [∞] -> notazione little endian
 # ESEMPIO: 100 (big endian) <-> 001 (little endian)
@@ -75,11 +77,11 @@ address = generate_address_P2TR_testnet(K_ser)  # tb1pgm4lk5h9yzm5zjpezve78hffmw
 # -------------------------------------------------------------- #
 
 # Dati delle tx con cui ho ricevuto i sats
-txid = bytes.fromhex("1810aa57b7852c3e145801bec7ca668994c902b99e7f3e16c140c25b1675eb85")
+txid = bytes.fromhex("2e97ff3116e6d97a61aa5e27c1ac0903d1b1d3582c8d1bf2f16ee23ebe1daa35")
 txid_reverse = reverse_byte_order(txid)
-vout = bytes_from_int_reversed(1, NUM_BYTES_4)
-amount_received = bytes_from_int_reversed(5438, NUM_BYTES_8) # 5438 sats
-locking_script_input = bytes.fromhex("")
+vout = bytes_from_int_reversed(0, NUM_BYTES_4)
+amount_received = bytes_from_int_reversed(6000, NUM_BYTES_8) # 6000 sats
+locking_script_input = create_locking_script_P2TR(K_ser)
 len_locking_script_input = compact_size(locking_script_input)
 
 # -------------------------------------------------------------- #
@@ -115,12 +117,12 @@ output_count = bytes_from_int(1, NUM_BYTES_1)
 locktime = bytes_from_int_reversed(0, NUM_BYTES_4)
 
 # Dati relativi a input #0
-sequence = bytes.fromhex("ffffffff")
+sequence = reverse_byte_order(bytes.fromhex("ffffffff"))
 sig_hash = bytes_from_int_reversed(0, NUM_BYTES_4) # SIGHASH_ALL_TAPROOT 00
 sig_hash_type = bytes_from_int(0, NUM_BYTES_1)
 
 # Dati relativi a UTXO #0
-amount_to_send = bytes_from_int_reversed(5300, NUM_BYTES_8) # 5300 sats
+amount_to_send = bytes_from_int_reversed(5500, NUM_BYTES_8) # 5500 sats
 locking_script_dest = create_locking_script_P2TR(K_ser)
 len_locking_script_dest = compact_size(locking_script_dest)
 
@@ -154,9 +156,9 @@ sha_outputs = sha256(amount_to_send + len_locking_script_dest + locking_script_d
 # spend_type (1): equal to (ext_flag * 2) + annex_present, where annex_present is 0 if no annex is present,
 # or 1 otherwise (the original witness stack has two or more witness elements,
 # and the first byte of the last element is 0x50)
-spend_type = bytes.fromhex("00")
+spend_type = bytes.fromhex("00") # key path -> ext_flag = 0
 
-# input_index (4): index of this input in the transaction input vector. Index of the first input is 0
+# input_index (4) [∞]: index of this input in the transaction input vector. Index of the first input is 0
 input_index = bytes_from_int_reversed(0, NUM_BYTES_4)
 
 tx_to_be_signed = b'\x00' + hash_type + version + locktime + sha_prevouts + sha_amounts + sha_scriptpubkeys + sha_sequences\
@@ -211,3 +213,25 @@ tx_signed = version + marker + flag + input_count + txid_reverse + vout + b'\x00
 print(tx_signed.hex())
 
 # tx SPENT!
+
+print()
+print("version: " + version.hex())
+print("marker: " + marker.hex())
+print("flag: " + flag.hex())
+print("input count: " + input_count.hex())
+print("txid reversed: " + txid_reverse.hex())
+print("vout: " + vout.hex())
+print("len unlocking script: 00")
+print("sequence: " + sequence.hex())
+print("output count: " + output_count.hex())
+print("amount: " + amount_to_send.hex())
+print("len locking script: " + len_locking_script_dest.hex())
+print("locking script: " + locking_script_dest.hex())
+print("witness1 : " + witness.hex())
+print("locktime: " + locktime.hex())
+
+
+print()
+print("witness count: " + witness_count.hex())
+print("signature size: " + compact_size(signature).hex())
+print("signature: " + signature.hex())
